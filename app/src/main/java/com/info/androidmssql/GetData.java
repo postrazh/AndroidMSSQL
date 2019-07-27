@@ -23,15 +23,15 @@ public class GetData {
             if (connection == null) {
                 ConnectionResult = "Check Your Internet Access!";
             } else {
-                String query = "select * from countries";
+                String query = "select * from Kits";
                 Statement statement = connection.createStatement();
                 ResultSet resultSet = statement.executeQuery(query);
 
                 while (resultSet.next()) {
                     Map<String, String> dataNum = new HashMap<String, String>();
-                    dataNum.put("ID", resultSet.getString("CountryId"));
-                    dataNum.put("Country", resultSet.getString("CountryName"));
-                    dataNum.put("Capital", resultSet.getString("CapitalCity"));
+                    dataNum.put("ID", resultSet.getString("Kit_ID"));
+                    dataNum.put("Number", resultSet.getString("KitSKU"));
+                    dataNum.put("Price", resultSet.getString("PartSKU"));
                     data.add(dataNum);
                 }
 

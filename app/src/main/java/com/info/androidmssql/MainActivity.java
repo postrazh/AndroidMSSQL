@@ -22,8 +22,10 @@ public class MainActivity extends AppCompatActivity {
             List<Map<String,String>> MyDataList = null;
             GetData myData = new GetData();
             MyDataList = myData.getData();
+
+            int i = 0;
             
-            Toast.makeText(this,"Connection trying...", Toast.LENGTH_LONG).show();
+//            Toast.makeText(this,"Connection trying...", Toast.LENGTH_LONG).show();
         });
     }
 }

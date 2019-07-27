@@ -13,7 +13,7 @@ public class ConnectionHelper {
 
     @SuppressLint("NewApi")
     public Connection connection(){
-        IP = "192.168.10.150";
+        IP = "192.168.10.150:1450";
         DB = "SJ";
         DBUsername = "fernando";
         DBPassword = "ThisIsNice01!";
