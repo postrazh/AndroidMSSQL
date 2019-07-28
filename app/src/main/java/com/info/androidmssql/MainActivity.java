@@ -2,23 +2,22 @@ package com.info.androidmssql;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,16 +32,13 @@ public class MainActivity extends AppCompatActivity {
     private Button mBtnCleaning;
     private Button mBtnPacking;
 
+    private Button mBtnStartTime;
+    private Button mBtnEndTime;
     private Button mBtnSave;
 
-    // date
-    private int mStartYear;
-    private int mStartMonth;
-    private int mStartDay;
-
-    private int mEndYear;
-    private int mEndMonth;
-    private int mEndDay;
+    // start and end time
+    private String mStartTimestamp = "";
+    private String mEndTimestamp = "";
 
 
     private int mActivityID = 1;
@@ -57,12 +53,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // calendar
-        final Calendar cal = Calendar.getInstance();
-        mStartYear = mEndYear = cal.get(Calendar.YEAR);
-        mStartMonth = mEndMonth = cal.get(Calendar.MONTH);
-        mStartDay = mEndDay = cal.get(Calendar.DAY_OF_MONTH);
 
         // get phone id
         mPhoneID = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
@@ -159,49 +149,53 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //
-        Button btnStartTime = findViewById(R.id.btnStartTime);
-        btnStartTime.setOnClickListener(view -> {
-            new DatePickerDialog(MainActivity.this, new DatePickerDialog.OnDateSetListener() {
-                @Override
-                public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                    mStartYear = year;
-                    mStartMonth = month;
-                    mStartDay = day;
+        mBtnStartTime = findViewById(R.id.btnStartTime);
+        mBtnStartTime.setOnClickListener(view -> {
+            SimpleDateFormat s1 = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
+            String format = s1.format(new Date());
+            mTxtStartTime.setText(format);
+            mStartTimestamp = format;
 
-                    mTxtStartTime.setText((mStartMonth+1) + "/" + mStartDay + "/" + mStartYear);
-                }
-            }, mStartYear, mStartMonth, mStartDay).show();
+            // buttons
+            mBtnStartTime.setEnabled(false);
+            mBtnEndTime.setEnabled(true);
+            mBtnSave.setEnabled(false);
+            mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
         });
-        mTxtStartTime.setText((mStartMonth+1) + "/" + mStartDay + "/" + mStartYear);
 
-        Button btnEndTime = findViewById(R.id.btnEndTime);
-        btnEndTime.setOnClickListener(view -> {
-            new DatePickerDialog(MainActivity.this, new DatePickerDialog.OnDateSetListener() {
-                @Override
-                public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                    mEndYear = year;
-                    mEndMonth = month;
-                    mEndDay = day;
+        mBtnEndTime = findViewById(R.id.btnEndTime);
+        mBtnEndTime.setOnClickListener(view -> {
+            SimpleDateFormat s1 = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
+            String format = s1.format(new Date());
+            mTxtEndTime.setText(format);
+            mEndTimestamp = format;
 
-                    mTxtEndTime.setText((mEndMonth+1) + "/" + mEndDay + "/" + mEndYear);
-                }
-            }, mEndYear, mEndMonth, mEndDay).show();
-
+            // buttons
+            mBtnStartTime.setEnabled(false);
+            mBtnEndTime.setEnabled(false);
+            mBtnSave.setEnabled(true);
+            mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(255, 69, 0)));
         });
-        mTxtEndTime.setText((mEndMonth+1) + "/" + mEndDay + "/" + mEndYear);
 
         mBtnSave = findViewById(R.id.btnSave);
         mBtnSave.setOnClickListener(view -> {
             String strOrderNumber = mEdtScanOrder.getText().toString();
             String strActivityID = String.valueOf(mActivityID);
-            String strStartTime = String.format("%d-%d-%d", mStartYear, mStartMonth + 1, mStartDay);
-            String strEndTime = String.format("%d-%d-%d", mEndYear, mEndMonth + 1, mEndDay);
 
             if (strOrderNumber.isEmpty()) {
                 Toast.makeText(this, "Scan Order can not be empty!", Toast.LENGTH_SHORT).show();
             } else {
-                new SaveAsyncTask().execute(strOrderNumber, strActivityID, strStartTime, strEndTime, mPhoneID);
+                new SaveAsyncTask().execute(strOrderNumber, strActivityID, mStartTimestamp, mEndTimestamp, mPhoneID);
             }
+
+            // buttons
+            mBtnStartTime.setEnabled(true);
+            mBtnEndTime.setEnabled(true);
+            mBtnSave.setEnabled(false);
+            mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
+
+            mTxtStartTime.setText("");
+            mTxtEndTime.setText("");
         });
         mBtnSave.setEnabled(false);
         mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
@@ -254,14 +248,6 @@ public class MainActivity extends AppCompatActivity {
                 mProgressDialog.dismiss();
 
             Toast.makeText(MainActivity.this, mConnectionResult, Toast.LENGTH_LONG).show();
-
-            if (mIsConnected) {
-                mBtnSave.setEnabled(true);
-                mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(255, 69, 0)));
-            } else {
-                mBtnSave.setEnabled(false);
-                mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
-            }
         }
     }
 
