@@ -72,13 +72,13 @@ public class MainActivity extends AppCompatActivity {
             mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
             mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
 
-            mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
+            mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 193, 0)));
             mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
             mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
             mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
             mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         });
-        mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
+        mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 193, 0)));
 
         mBtnSpecs = findViewById(R.id.btnSpecs);
         mBtnSpecs.setOnClickListener(view -> {
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
             mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
 
             mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
+            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(121, 185, 225)));
             mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
             mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
             mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
 
             mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
             mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
+            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 225, 184)));
             mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
             mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         });
@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
             mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
             mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
+            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(0, 229, 0)));
             mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         });
 
@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
             mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
             mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
             mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
+            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 126, 0)));
         });
 
         //
