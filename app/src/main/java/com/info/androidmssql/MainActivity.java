@@ -176,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
             mBtnSave.setEnabled(true);
             mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(255, 69, 0)));
         });
+        mBtnEndTime.setEnabled(false);
 
         mBtnSave = findViewById(R.id.btnSave);
         mBtnSave.setOnClickListener(view -> {
@@ -186,16 +187,16 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Scan Order can not be empty!", Toast.LENGTH_SHORT).show();
             } else {
                 new SaveAsyncTask().execute(strOrderNumber, strActivityID, mStartTimestamp, mEndTimestamp, mPhoneID);
+
+                // buttons
+                mBtnStartTime.setEnabled(true);
+                mBtnEndTime.setEnabled(false);
+                mBtnSave.setEnabled(false);
+                mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
+
+                mTxtStartTime.setText("");
+                mTxtEndTime.setText("");
             }
-
-            // buttons
-            mBtnStartTime.setEnabled(true);
-            mBtnEndTime.setEnabled(true);
-            mBtnSave.setEnabled(false);
-            mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
-
-            mTxtStartTime.setText("");
-            mTxtEndTime.setText("");
         });
         mBtnSave.setEnabled(false);
         mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
