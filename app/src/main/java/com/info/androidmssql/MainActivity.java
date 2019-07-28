@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private String mEndTimestamp = "";
 
 
-    private int mActivityID = 1;
+    private int mActivityID = -1;
 
     // connection
     private Connection mConnection;
@@ -78,7 +78,6 @@ public class MainActivity extends AppCompatActivity {
             mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
             mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         });
-        mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 193, 0)));
 
         mBtnSpecs = findViewById(R.id.btnSpecs);
         mBtnSpecs.setOnClickListener(view -> {
@@ -185,6 +184,8 @@ public class MainActivity extends AppCompatActivity {
 
             if (strOrderNumber.isEmpty()) {
                 Toast.makeText(this, "Scan Order can not be empty!", Toast.LENGTH_SHORT).show();
+            } else if (mActivityID < 0) {
+                Toast.makeText(this, "Please select the Activity ID", Toast.LENGTH_SHORT).show();
             } else {
                 new SaveAsyncTask().execute(strOrderNumber, strActivityID, mStartTimestamp, mEndTimestamp, mPhoneID);
 
@@ -196,6 +197,20 @@ public class MainActivity extends AppCompatActivity {
 
                 mTxtStartTime.setText("");
                 mTxtEndTime.setText("");
+                mEdtScanOrder.setText("");
+
+                mActivityID = -1;
+                mBtnPicking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+                mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+                mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+                mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+                mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+
+                mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+                mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+                mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+                mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+                mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
             }
         });
         mBtnSave.setEnabled(false);

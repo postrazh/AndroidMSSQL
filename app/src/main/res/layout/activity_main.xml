@@ -41,7 +41,7 @@
             android:padding="2dp"
             android:text="Picking"
             android:textAllCaps="false"
-            android:textColor="@color/colorTabEnabled"
+            android:textColor="@color/colorTabDisabled"
             android:textSize="12sp"/>
         <Button
             android:id="@+id/btnSpecs"
