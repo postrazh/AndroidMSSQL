@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -61,6 +63,27 @@ public class MainActivity extends AppCompatActivity {
         mEdtScanOrder = findViewById(R.id.edtScanOrder);
         mTxtStartTime = findViewById(R.id.txtStartTime);
         mTxtEndTime = findViewById(R.id.txtEndTime);
+
+        mEdtScanOrder.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (mEdtScanOrder.getText().toString().isEmpty()) {
+                    mBtnStartTime.setEnabled(false);
+                } else {
+                    mBtnStartTime.setEnabled(true);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
 
         mBtnPicking = findViewById(R.id.btnPicking);
         mBtnPicking.setOnClickListener(view -> {
@@ -161,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
             mBtnSave.setEnabled(false);
             mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
         });
+        mBtnStartTime.setEnabled(false);
 
         mBtnEndTime = findViewById(R.id.btnEndTime);
         mBtnEndTime.setOnClickListener(view -> {
@@ -190,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
                 new SaveAsyncTask().execute(strOrderNumber, strActivityID, mStartTimestamp, mEndTimestamp, mPhoneID);
 
                 // buttons
-                mBtnStartTime.setEnabled(true);
+                mBtnStartTime.setEnabled(false);
                 mBtnEndTime.setEnabled(false);
                 mBtnSave.setEnabled(false);
                 mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
