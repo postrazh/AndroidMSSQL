@@ -9,15 +9,13 @@ import java.sql.SQLException;
 
 public class ConnectionHelper {
 
-    String IP,DB,DBUsername,DBPassword;
+//    private final String IP = "192.168.1.237:1450";
+    private final String IP = "192.168.10.150:1450";
+    private final String DB = "SJ";
+    private final String DBUsername = "fernando";
+    private final String DBPassword = "ThisIsNice01!";
 
-    @SuppressLint("NewApi")
     public Connection connection(){
-        IP = "192.168.10.150:1450";
-        DB = "SJ";
-        DBUsername = "fernando";
-        DBPassword = "ThisIsNice01!";
-
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
         java.sql.Connection connection = null;
