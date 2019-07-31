@@ -11,20 +11,6 @@
     android:paddingTop="48dp"
     android:paddingEnd="4dp"
     tools:context=".MainActivity">
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:text="Scan Order "
-        android:textColor="@android:color/black"
-        android:textSize="18sp"/>
-    <EditText
-        android:id="@+id/edtScanOrder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textPersonName"
-    />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -96,49 +82,36 @@
             android:textColor="@color/colorTabDisabled"
             android:textSize="12sp"/>
     </LinearLayout>
+    <Button
+        android:id="@+id/btnScanOrder"
+        style="@style/NormalButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Scan Order"
+        android:textAllCaps="false"
+        android:textSize="12sp"
+        android:visibility="visible"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:orientation="horizontal">
-        <Button
-            android:id="@+id/btnStartTime"
-            style="@style/NormalButton"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Order Number :"
+            android:textColor="@android:color/black"
+            android:textSize="14sp"/>
+        <TextView
+            android:id="@+id/txtOrderNumber"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:text="Start Time"
-            android:textAllCaps="false"
-            android:textSize="12sp"/>
-        <TextView
-            android:id="@+id/txtStartTime"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:gravity="center"
-        />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:orientation="horizontal">
-        <Button
-            android:id="@+id/btnEndTime"
-            style="@style/NormalButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="End Time"
-            android:textAllCaps="false"
-            android:textSize="12sp"/>
-        <TextView
-            android:id="@+id/txtEndTime"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:gravity="center"
-        />
+            android:textColor="@android:color/black"
+            android:textSize="14sp"/>
     </LinearLayout>
     <Button
         android:id="@+id/btnSave"
@@ -146,7 +119,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:layout_marginBottom="20dp"
         android:paddingTop="16dp"
         android:paddingBottom="16dp"
         android:text="Save"/>

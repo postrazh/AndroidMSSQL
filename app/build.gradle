@@ -33,4 +33,6 @@ dependencies {
 
     // material button
     implementation 'com.google.android.material:material:1.0.0'
+
+    implementation project(path: ':barcode-reader')
 }

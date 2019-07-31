@@ -2,7 +2,9 @@ package com.info.androidmssql;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -15,40 +17,36 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.vision.barcode.Barcode;
+import com.notbytes.barcode_reader.BarcodeReaderActivity;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
+    private static final int BARCODE_READER_ACTIVITY_REQUEST = 1208;
 
     // views
-    private EditText mEdtScanOrder;
-    private TextView mTxtStartTime;
-    private TextView mTxtEndTime;
-
-    private Button mBtnClosing;
     private Button mBtnSpecs;
     private Button mBtnLoading;
+    private Button mBtnClosing;
     private Button mBtnCleaning;
     private Button mBtnPacking;
 
-    private Button mBtnStartTime;
-    private Button mBtnEndTime;
+    private Button mBtnScanOrder;
+    private TextView mTxtOrderNumber;
+
     private Button mBtnSave;
 
-    // start and end time
-    private String mStartTimestamp = "";
-    private String mEndTimestamp = "";
-
-
+    // data
+    private String mPhoneID = "";
     private int mActivityID = -1;
 
     // connection
     private Connection mConnection;
 
-    // phone id
-    private String mPhoneID = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,13 +57,21 @@ public class MainActivity extends AppCompatActivity {
         mPhoneID = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
 
         // views
-        mEdtScanOrder = findViewById(R.id.edtScanOrder);
-        mTxtStartTime = findViewById(R.id.txtStartTime);
-        mTxtEndTime = findViewById(R.id.txtEndTime);
-
         mBtnSpecs = findViewById(R.id.btnSpecs);
+        mBtnLoading = findViewById(R.id.btnLoading);
+        mBtnClosing = findViewById(R.id.btnClosing);
+        mBtnCleaning = findViewById(R.id.btnCleaning);
+        mBtnPacking = findViewById(R.id.btnPacking);
+
+        mBtnScanOrder = findViewById(R.id.btnScanOrder);
+        mTxtOrderNumber = findViewById(R.id.txtOrderNumber);
+
+        mBtnSave = findViewById(R.id.btnSave);
+
         mBtnSpecs.setOnClickListener(view -> {
             mActivityID = 1;
+            mBtnScanOrder.setEnabled(true);
+            mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(59, 118, 235)));
 
             mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
             mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabEnabled));
@@ -80,9 +86,10 @@ public class MainActivity extends AppCompatActivity {
             mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         });
 
-        mBtnLoading = findViewById(R.id.btnLoading);
         mBtnLoading.setOnClickListener(view -> {
             mActivityID = 2;
+            mBtnScanOrder.setEnabled(true);
+            mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(59, 118, 235)));
 
             mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
             mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
@@ -97,9 +104,10 @@ public class MainActivity extends AppCompatActivity {
             mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         });
 
-        mBtnClosing = findViewById(R.id.btnClosing);
         mBtnClosing.setOnClickListener(view -> {
             mActivityID = 3;
+            mBtnScanOrder.setEnabled(true);
+            mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(59, 118, 235)));
 
             mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabEnabled));
             mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
@@ -114,9 +122,10 @@ public class MainActivity extends AppCompatActivity {
             mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         });
 
-        mBtnCleaning = findViewById(R.id.btnCleaning);
         mBtnCleaning.setOnClickListener(view -> {
             mActivityID = 4;
+            mBtnScanOrder.setEnabled(true);
+            mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(59, 118, 235)));
 
             mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
             mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
@@ -131,9 +140,10 @@ public class MainActivity extends AppCompatActivity {
             mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         });
 
-        mBtnPacking = findViewById(R.id.btnPacking);
         mBtnPacking.setOnClickListener(view -> {
             mActivityID = 5;
+            mBtnScanOrder.setEnabled(true);
+            mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(59, 118, 235)));
 
             mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
             mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
@@ -148,81 +158,34 @@ public class MainActivity extends AppCompatActivity {
             mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 126, 0)));
         });
 
-        // barcode
-        mEdtScanOrder.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if (mEdtScanOrder.getText().toString().isEmpty()) {
-                    mBtnStartTime.setEnabled(false);
-                } else {
-                    mBtnStartTime.setEnabled(true);
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-
-            }
+        mBtnScanOrder.setOnClickListener(view -> {
+            Intent launchIntent = BarcodeReaderActivity.getLaunchIntent(this, true, false);
+            startActivityForResult(launchIntent, BARCODE_READER_ACTIVITY_REQUEST);
         });
+        mBtnScanOrder.setEnabled(false);
+        mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
 
-        // start button
-        mBtnStartTime = findViewById(R.id.btnStartTime);
-        mBtnStartTime.setOnClickListener(view -> {
-            SimpleDateFormat s1 = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
-            String format = s1.format(new Date());
-            mTxtStartTime.setText(format);
-            mStartTimestamp = format;
-
-            // buttons
-            mBtnStartTime.setEnabled(false);
-            mBtnEndTime.setEnabled(true);
-            mBtnSave.setEnabled(false);
-            mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
-        });
-        mBtnStartTime.setEnabled(false);
-
-        // end button
-        mBtnEndTime = findViewById(R.id.btnEndTime);
-        mBtnEndTime.setOnClickListener(view -> {
-            SimpleDateFormat s1 = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
-            String format = s1.format(new Date());
-            mTxtEndTime.setText(format);
-            mEndTimestamp = format;
-
-            // buttons
-            mBtnStartTime.setEnabled(false);
-            mBtnEndTime.setEnabled(false);
-            mBtnSave.setEnabled(true);
-            mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(255, 69, 0)));
-        });
-        mBtnEndTime.setEnabled(false);
-
-        mBtnSave = findViewById(R.id.btnSave);
         mBtnSave.setOnClickListener(view -> {
-            String strOrderNumber = mEdtScanOrder.getText().toString();
+            String strOrderNumber = mTxtOrderNumber.getText().toString();
             String strActivityID = String.valueOf(mActivityID);
+
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
+            String strCurrentTimeStamp = simpleDateFormat.format(new Date());
 
             if (strOrderNumber.isEmpty()) {
                 Toast.makeText(this, "Scan Order can not be empty!", Toast.LENGTH_SHORT).show();
             } else if (mActivityID < 0) {
                 Toast.makeText(this, "Please select the Activity ID", Toast.LENGTH_SHORT).show();
             } else {
-                new SaveAsyncTask().execute(strOrderNumber, strActivityID, mStartTimestamp, mEndTimestamp, mPhoneID);
+                new SaveAsyncTask().execute(strOrderNumber, strActivityID, strCurrentTimeStamp, strCurrentTimeStamp, mPhoneID);
 
                 // buttons
-                mBtnStartTime.setEnabled(false);
-                mBtnEndTime.setEnabled(false);
                 mBtnSave.setEnabled(false);
                 mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
 
-                mTxtStartTime.setText("");
-                mTxtEndTime.setText("");
-                mEdtScanOrder.setText("");
+                mBtnScanOrder.setEnabled(false);
+                mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
+                mTxtOrderNumber.setText("");
 
                 mActivityID = -1;
                 mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
@@ -243,6 +206,31 @@ public class MainActivity extends AppCompatActivity {
 
         // connect
         new ConnectionAsyncTask().execute();
+    }
+
+    @Override
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode != Activity.RESULT_OK) {
+            Toast.makeText(this, "error in  scanning", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (requestCode == BARCODE_READER_ACTIVITY_REQUEST && data != null) {
+            Barcode barcode = data.getParcelableExtra(BarcodeReaderActivity.KEY_CAPTURED_BARCODE);
+            Toast.makeText(this, barcode.rawValue, Toast.LENGTH_SHORT).show();
+
+            mTxtOrderNumber.setText(barcode.rawValue);
+
+            mBtnScanOrder.setEnabled(false);
+            mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
+
+            mBtnSave.setEnabled(true);
+            mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(255, 69, 0)));
+        }
+
     }
 
     private class ConnectionAsyncTask extends AsyncTask<Void, Void, Void> {
