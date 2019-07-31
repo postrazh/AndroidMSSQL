@@ -18,7 +18,6 @@ import android.widget.Toast;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
@@ -28,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView mTxtStartTime;
     private TextView mTxtEndTime;
 
-    private Button mBtnPicking;
+    private Button mBtnClosing;
     private Button mBtnSpecs;
     private Button mBtnLoading;
     private Button mBtnCleaning;
@@ -64,6 +63,92 @@ public class MainActivity extends AppCompatActivity {
         mTxtStartTime = findViewById(R.id.txtStartTime);
         mTxtEndTime = findViewById(R.id.txtEndTime);
 
+        mBtnSpecs = findViewById(R.id.btnSpecs);
+        mBtnSpecs.setOnClickListener(view -> {
+            mActivityID = 1;
+
+            mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabEnabled));
+            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+
+            mBtnClosing.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(121, 185, 225)));
+            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+        });
+
+        mBtnLoading = findViewById(R.id.btnLoading);
+        mBtnLoading.setOnClickListener(view -> {
+            mActivityID = 2;
+
+            mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabEnabled));
+            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+
+            mBtnClosing.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 225, 184)));
+            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+        });
+
+        mBtnClosing = findViewById(R.id.btnClosing);
+        mBtnClosing.setOnClickListener(view -> {
+            mActivityID = 3;
+
+            mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabEnabled));
+            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+
+            mBtnClosing.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 193, 0)));
+            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+        });
+
+        mBtnCleaning = findViewById(R.id.btnCleaning);
+        mBtnCleaning.setOnClickListener(view -> {
+            mActivityID = 4;
+
+            mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabEnabled));
+            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+
+            mBtnClosing.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(0, 229, 0)));
+            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+        });
+
+        mBtnPacking = findViewById(R.id.btnPacking);
+        mBtnPacking.setOnClickListener(view -> {
+            mActivityID = 5;
+
+            mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabEnabled));
+
+            mBtnClosing.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 126, 0)));
+        });
+
+        // barcode
         mEdtScanOrder.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -85,92 +170,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mBtnPicking = findViewById(R.id.btnPicking);
-        mBtnPicking.setOnClickListener(view -> {
-            mActivityID = 1;
-
-            mBtnPicking.setTextColor(getResources().getColor(R.color.colorTabEnabled));
-            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-
-            mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 193, 0)));
-            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-        });
-
-        mBtnSpecs = findViewById(R.id.btnSpecs);
-        mBtnSpecs.setOnClickListener(view -> {
-            mActivityID = 2;
-
-            mBtnPicking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabEnabled));
-            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-
-            mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(121, 185, 225)));
-            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-        });
-
-        mBtnLoading = findViewById(R.id.btnLoading);
-        mBtnLoading.setOnClickListener(view -> {
-            mActivityID = 3;
-
-            mBtnPicking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabEnabled));
-            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-
-            mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 225, 184)));
-            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-        });
-
-        mBtnCleaning = findViewById(R.id.btnCleaning);
-        mBtnCleaning.setOnClickListener(view -> {
-            mActivityID = 4;
-
-            mBtnPicking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabEnabled));
-            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-
-            mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(0, 229, 0)));
-            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-        });
-
-        mBtnPacking = findViewById(R.id.btnPacking);
-        mBtnPacking.setOnClickListener(view -> {
-            mActivityID = 5;
-
-            mBtnPicking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabEnabled));
-
-            mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 126, 0)));
-        });
-
-        //
+        // start button
         mBtnStartTime = findViewById(R.id.btnStartTime);
         mBtnStartTime.setOnClickListener(view -> {
             SimpleDateFormat s1 = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
@@ -186,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
         });
         mBtnStartTime.setEnabled(false);
 
+        // end button
         mBtnEndTime = findViewById(R.id.btnEndTime);
         mBtnEndTime.setOnClickListener(view -> {
             SimpleDateFormat s1 = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
@@ -224,13 +225,13 @@ public class MainActivity extends AppCompatActivity {
                 mEdtScanOrder.setText("");
 
                 mActivityID = -1;
-                mBtnPicking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
+                mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
                 mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
                 mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
                 mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
                 mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
 
-                mBtnPicking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+                mBtnClosing.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
                 mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
                 mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
                 mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));

@@ -31,19 +31,6 @@
         android:layout_marginTop="16dp"
         android:orientation="horizontal">
         <Button
-            android:id="@+id/btnPicking"
-            style="@style/TabButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="1dp"
-            android:layout_marginEnd="1dp"
-            android:layout_weight="1"
-            android:padding="2dp"
-            android:text="Picking"
-            android:textAllCaps="false"
-            android:textColor="@color/colorTabDisabled"
-            android:textSize="12sp"/>
-        <Button
             android:id="@+id/btnSpecs"
             style="@style/TabButton"
             android:layout_width="wrap_content"
@@ -66,6 +53,19 @@
             android:layout_weight="1"
             android:padding="2dp"
             android:text="Loading"
+            android:textAllCaps="false"
+            android:textColor="@color/colorTabDisabled"
+            android:textSize="12sp"/>
+        <Button
+            android:id="@+id/btnClosing"
+            style="@style/TabButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="1dp"
+            android:layout_marginEnd="1dp"
+            android:layout_weight="1"
+            android:padding="2dp"
+            android:text="Closing"
             android:textAllCaps="false"
             android:textColor="@color/colorTabDisabled"
             android:textSize="12sp"/>
