@@ -7,23 +7,29 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.hardware.Camera;
+import android.media.AudioManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.media.ToneGenerator;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.vision.barcode.Barcode;
+import com.google.android.material.snackbar.Snackbar;
 import com.notbytes.barcode_reader.BarcodeReaderActivity;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
     private static final int BARCODE_READER_ACTIVITY_REQUEST = 1208;
@@ -35,17 +41,24 @@ public class MainActivity extends AppCompatActivity {
     private Button mBtnCleaning;
     private Button mBtnPacking;
 
-    private Button mBtnScanOrder;
-    private TextView mTxtOrderNumber;
-
-    private Button mBtnSave;
-
     // data
     private String mPhoneID = "";
-    private int mActivityID = -1;
+    private String mStrActivityId = "";
 
     // connection
     private Connection mConnection;
+
+    private boolean hasFrontCamera() {
+        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+        int numberOfCameras = Camera.getNumberOfCameras();
+        for (int i = 0; i < numberOfCameras; i++) {
+            Camera.getCameraInfo(i, cameraInfo);
+            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 
     @Override
@@ -63,149 +76,63 @@ public class MainActivity extends AppCompatActivity {
         mBtnCleaning = findViewById(R.id.btnCleaning);
         mBtnPacking = findViewById(R.id.btnPacking);
 
-        mBtnScanOrder = findViewById(R.id.btnScanOrder);
-        mTxtOrderNumber = findViewById(R.id.txtOrderNumber);
-
-        mBtnSave = findViewById(R.id.btnSave);
-
         mBtnSpecs.setOnClickListener(view -> {
-            mActivityID = 1;
-            mBtnScanOrder.setEnabled(true);
-            mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(59, 118, 235)));
-
-            mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabEnabled));
-            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-
-            mBtnClosing.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(121, 185, 225)));
-            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            startScanOrder("1");
         });
 
         mBtnLoading.setOnClickListener(view -> {
-            mActivityID = 2;
-            mBtnScanOrder.setEnabled(true);
-            mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(59, 118, 235)));
-
-            mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabEnabled));
-            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-
-            mBtnClosing.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 225, 184)));
-            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            startScanOrder("2");
         });
 
         mBtnClosing.setOnClickListener(view -> {
-            mActivityID = 3;
-            mBtnScanOrder.setEnabled(true);
-            mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(59, 118, 235)));
-
-            mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabEnabled));
-            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-
-            mBtnClosing.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 193, 0)));
-            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            startScanOrder("3");
         });
 
         mBtnCleaning.setOnClickListener(view -> {
-            mActivityID = 4;
-            mBtnScanOrder.setEnabled(true);
-            mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(59, 118, 235)));
-
-            mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabEnabled));
-            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-
-            mBtnClosing.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(0, 229, 0)));
-            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            startScanOrder("4");
         });
 
         mBtnPacking.setOnClickListener(view -> {
-            mActivityID = 5;
-            mBtnScanOrder.setEnabled(true);
-            mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(59, 118, 235)));
-
-            mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-            mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabEnabled));
-
-            mBtnClosing.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(229, 126, 0)));
+            startScanOrder("5");
         });
-
-        mBtnScanOrder.setOnClickListener(view -> {
-            Intent launchIntent = BarcodeReaderActivity.getLaunchIntent(this, true, false);
-            startActivityForResult(launchIntent, BARCODE_READER_ACTIVITY_REQUEST);
-        });
-        mBtnScanOrder.setEnabled(false);
-        mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
-
-        mBtnSave.setOnClickListener(view -> {
-            String strOrderNumber = mTxtOrderNumber.getText().toString();
-            String strActivityID = String.valueOf(mActivityID);
-
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
-            String strCurrentTimeStamp = simpleDateFormat.format(new Date());
-
-            if (strOrderNumber.isEmpty()) {
-                Toast.makeText(this, "Scan Order can not be empty!", Toast.LENGTH_SHORT).show();
-            } else if (mActivityID < 0) {
-                Toast.makeText(this, "Please select the Activity ID", Toast.LENGTH_SHORT).show();
-            } else {
-                new SaveAsyncTask().execute(strOrderNumber, strActivityID, strCurrentTimeStamp, strCurrentTimeStamp, mPhoneID);
-
-                // buttons
-                mBtnSave.setEnabled(false);
-                mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
-
-                mBtnScanOrder.setEnabled(false);
-                mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
-                mTxtOrderNumber.setText("");
-
-                mActivityID = -1;
-                mBtnClosing.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-                mBtnSpecs.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-                mBtnLoading.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-                mBtnCleaning.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-                mBtnPacking.setTextColor(getResources().getColor(R.color.colorTabDisabled));
-
-                mBtnClosing.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-                mBtnSpecs.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-                mBtnLoading.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-                mBtnCleaning.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-                mBtnPacking.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-            }
-        });
-        mBtnSave.setEnabled(false);
-        mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
 
         // connect
         new ConnectionAsyncTask().execute();
+    }
+
+    private void onFail(String strMessage) {
+        ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 500);
+        toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 700);
+
+        Snackbar snackbar = Snackbar.make(getWindow().getDecorView(), strMessage, Snackbar.LENGTH_LONG);
+        snackbar.show();
+    }
+
+    private void onSuccess(String strMessage) {
+        try {
+            Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+            r.play();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Snackbar snackbar = Snackbar.make(getWindow().getDecorView(), strMessage, Snackbar.LENGTH_LONG);
+        snackbar.show();
+    }
+
+    private void startScanOrder(String strActivityId) {
+        if (!hasFrontCamera()) {
+            Toast.makeText(MainActivity.this, "There is no camera. Simulating dummy bar code", Toast.LENGTH_SHORT).show();
+            saveOrder("123456", strActivityId);
+        } else {
+            // save activity id
+            mStrActivityId = strActivityId;
+
+            // stat scan the barcode
+            Intent launchIntent = BarcodeReaderActivity.getLaunchIntent(this, true, false);
+            startActivityForResult(launchIntent, BARCODE_READER_ACTIVITY_REQUEST);
+        }
     }
 
     @Override
@@ -214,23 +141,57 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode != Activity.RESULT_OK) {
-            Toast.makeText(this, "error in  scanning", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Error in  scanning", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (requestCode == BARCODE_READER_ACTIVITY_REQUEST && data != null) {
             Barcode barcode = data.getParcelableExtra(BarcodeReaderActivity.KEY_CAPTURED_BARCODE);
-            Toast.makeText(this, barcode.rawValue, Toast.LENGTH_SHORT).show();
 
-            mTxtOrderNumber.setText(barcode.rawValue);
-
-            mBtnScanOrder.setEnabled(false);
-            mBtnScanOrder.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
-
-            mBtnSave.setEnabled(true);
-            mBtnSave.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(255, 69, 0)));
+            saveOrder(barcode.rawValue, mStrActivityId);
         }
 
+    }
+
+    private void saveOrder(String strOrderNumber, String strActivityId) {
+        Boolean searchResult = false;
+        try {
+            searchResult = new SearchAsyncTask().execute(strOrderNumber, strActivityId).get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (searchResult) {
+            String strErrorMsg = "";
+            switch (strActivityId) {
+                case "1":
+                    strErrorMsg = "Specs was already done for this order!";
+                    break;
+                case "2":
+                    strErrorMsg = "Loading was already done for this order!";
+                    break;
+                case "3":
+                    strErrorMsg = "Closing was already done for this order!";
+                    break;
+                case "4":
+                    strErrorMsg = "Cleaning was already done for this order!";
+                    break;
+                case "5":
+                    strErrorMsg = "Packing was already done for this order!";
+                    break;
+            }
+
+            onFail(strErrorMsg);
+        } else {
+            // save to the database
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
+            String strCurrentTimeStamp = simpleDateFormat.format(new Date());
+
+            new SaveAsyncTask().execute(strOrderNumber, strActivityId, strCurrentTimeStamp,
+                    strCurrentTimeStamp, mPhoneID);
+        }
     }
 
     private class ConnectionAsyncTask extends AsyncTask<Void, Void, Void> {
@@ -314,7 +275,24 @@ public class MainActivity extends AppCompatActivity {
                     preparedStatement.executeUpdate();
 
                     mIsSuccess = true;
-                    mResultMessage = "Successfully saved!";
+
+                    switch (strActivityID) {
+                        case "1":
+                            mResultMessage = "Specs stored!";
+                            break;
+                        case "2":
+                            mResultMessage = "Loading stored!";
+                            break;
+                        case "3":
+                            mResultMessage = "Closing stored!";
+                            break;
+                        case "4":
+                            mResultMessage = "Cleaning stored!";
+                            break;
+                        case "5":
+                            mResultMessage = "Packing stored!";
+                            break;
+                    }
                 }
             }
             catch (Exception e) {
@@ -329,7 +307,37 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
-            Toast.makeText(MainActivity.this, mResultMessage, Toast.LENGTH_LONG).show();
+            if (mIsSuccess) {
+                onSuccess(mResultMessage);
+            } else {
+                onFail(mResultMessage);
+            }
+        }
+    }
+
+    private class SearchAsyncTask extends AsyncTask<String, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            try {
+                if(mConnection != null) {
+                    String strOrderNumber = params[0];
+                    String strActivityID = params[1];
+
+                    String query = "SELECT * FROM tbl_OrderActivities WHERE [Order - Number]='" +
+                            strOrderNumber + "' AND Activity_ID='" +
+                            strActivityID + "'";
+                    Statement statement = mConnection.createStatement();
+                    ResultSet resultSet = statement.executeQuery(query);
+                    if (resultSet.next())
+                        return true;
+                }
+            }
+            catch (Exception e) {
+
+            }
+
+            return false;
         }
     }
 }

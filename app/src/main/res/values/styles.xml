@@ -8,16 +8,4 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="TabButton" parent="@style/Widget.MaterialComponents.Button.OutlinedButton">
-        <item name="rippleColor">#FFAAAAAA</item>
-    </style>
-
-    <style name="NormalButton" parent="@style/Widget.MaterialComponents.Button">
-        <item name="backgroundTint">#3B76EB</item>
-    </style>
-
-    <style name="SaveButton" parent="@style/Widget.MaterialComponents.Button">
-        <item name="backgroundTint">#FF4500</item>
-    </style>
-
 </resources>
