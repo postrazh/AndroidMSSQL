@@ -13,7 +13,7 @@ public class ConnectionHelper {
 //    private final String IP = "192.168.1.237:1450";
 
     // wifi
-//    private final String IP = "192.168.2.127:1450";
+//    private final String IP = "192.168.2.126:1450";
 
     // production IP
     private final String IP = "192.168.10.150:1450";

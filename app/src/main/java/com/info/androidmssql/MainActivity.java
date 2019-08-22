@@ -2,9 +2,13 @@ package com.info.androidmssql;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.hardware.Camera;
@@ -60,11 +64,34 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    AlertDialog permd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // check permission
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            final String[] perms = {
+                    Manifest.permission.CAMERA
+            };
+            for(String perm: perms)
+                if (checkSelfPermission(perm) != PackageManager.PERMISSION_GRANTED) {
+                    if (permd == null || !permd.isShowing())
+                        permd = new AlertDialog.Builder(this)
+                                .setMessage("The camera permission is needed to capture the barcode.")
+                                .setTitle("Permissions")
+                                .setCancelable(true)
+                                .setPositiveButton("OK",new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        requestPermissions(perms,0);
+                                    }
+                                })
+                                .show();
+                    return;
+                }
+        }
 
         // get phone id
         mPhoneID = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
@@ -97,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // connect
-        new ConnectionAsyncTask().execute();
+//        new ConnectionAsyncTask().execute();
     }
 
     private void onFail(String strMessage) {
@@ -147,6 +174,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (requestCode == BARCODE_READER_ACTIVITY_REQUEST && data != null) {
             Barcode barcode = data.getParcelableExtra(BarcodeReaderActivity.KEY_CAPTURED_BARCODE);
+
+            Toast.makeText(this, barcode.rawValue, Toast.LENGTH_LONG).show();
 
             saveOrder(barcode.rawValue, mStrActivityId);
         }
