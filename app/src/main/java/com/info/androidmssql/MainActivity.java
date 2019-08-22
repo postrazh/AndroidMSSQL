@@ -23,9 +23,9 @@ import android.provider.Settings;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.samples.vision.barcodereader.BarcodeCapture;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.material.snackbar.Snackbar;
-import com.notbytes.barcode_reader.BarcodeReaderActivity;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -36,7 +36,7 @@ import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
-    private static final int BARCODE_READER_ACTIVITY_REQUEST = 1208;
+    private static final int BARCODE_READER_ACTIVITY_REQUEST = 1;
 
     // views
     private Button mBtnSpecs;
@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // connect
-//        new ConnectionAsyncTask().execute();
+        new ConnectionAsyncTask().execute();
     }
 
     private void onFail(String strMessage) {
@@ -157,8 +157,8 @@ public class MainActivity extends AppCompatActivity {
             mStrActivityId = strActivityId;
 
             // stat scan the barcode
-            Intent launchIntent = BarcodeReaderActivity.getLaunchIntent(this, true, false);
-            startActivityForResult(launchIntent, BARCODE_READER_ACTIVITY_REQUEST);
+            Intent intent = new Intent(this, BarcodeActivity.class);
+            startActivityForResult(intent, BARCODE_READER_ACTIVITY_REQUEST);
         }
     }
 
@@ -167,19 +167,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode != Activity.RESULT_OK) {
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == BARCODE_READER_ACTIVITY_REQUEST) {
+                if (data != null) {
+                    String barcode = data.getStringExtra("result");
+                    Toast.makeText(this, barcode, Toast.LENGTH_LONG).show();
+                    saveOrder(barcode, mStrActivityId);
+                }
+            }
+        } else {
             Toast.makeText(this, "Error in  scanning", Toast.LENGTH_SHORT).show();
-            return;
         }
-
-        if (requestCode == BARCODE_READER_ACTIVITY_REQUEST && data != null) {
-            Barcode barcode = data.getParcelableExtra(BarcodeReaderActivity.KEY_CAPTURED_BARCODE);
-
-            Toast.makeText(this, barcode.rawValue, Toast.LENGTH_LONG).show();
-
-            saveOrder(barcode.rawValue, mStrActivityId);
-        }
-
     }
 
     private void saveOrder(String strOrderNumber, String strActivityId) {
