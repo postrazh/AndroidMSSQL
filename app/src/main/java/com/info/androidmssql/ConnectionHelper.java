@@ -10,13 +10,13 @@ import java.sql.SQLException;
 public class ConnectionHelper {
 
     // NOX
-//    private final String IP = "192.168.1.237:1450";
+//    private final String IP = "192.168.2.115:1450";
 
     // wifi
-//    private final String IP = "192.168.2.126:1450";
+    private final String IP = "192.168.2.126:1450";
 
     // production IP
-    private final String IP = "192.168.10.150:1450";
+//    private final String IP = "192.168.10.150:1450";
 
     private final String DB = "SJ";
     private final String DBUsername = "fernando";

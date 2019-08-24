@@ -1,67 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_activity"
-    android:orientation="vertical"
-    android:padding="48dp"
+    android:orientation="horizontal"
+    android:padding="12dp"
     tools:context=".MainActivity">
+
     <Button
         android:id="@+id/btnSpecs"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
         android:layout_margin="12dp"
+        android:layout_weight="1"
         android:backgroundTint="#2CAAFA"
-        android:padding="18dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp"
         android:text="Specs"
         android:textAllCaps="false"
         android:textColor="@android:color/white"
-        android:textSize="18sp"/>
+        android:textSize="18sp" />
+
     <Button
         android:id="@+id/btnLoading"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
         android:layout_margin="12dp"
+        android:layout_weight="1"
         android:backgroundTint="#FA7F89"
-        android:padding="18dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp"
         android:text="Loading"
         android:textAllCaps="false"
         android:textColor="@android:color/white"
-        android:textSize="18sp"/>
+        android:textSize="18sp" />
+
     <Button
         android:id="@+id/btnClosing"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
         android:layout_margin="12dp"
+        android:layout_weight="1"
         android:backgroundTint="#5E8AB9"
-        android:padding="18dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp"
         android:text="Closing"
         android:textAllCaps="false"
         android:textColor="@android:color/white"
-        android:textSize="18sp"/>
+        android:textSize="18sp" />
+
     <Button
         android:id="@+id/btnCleaning"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
         android:layout_margin="12dp"
+        android:layout_weight="1"
         android:backgroundTint="#04AC4F"
-        android:padding="18dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp"
         android:text="Cleaning"
         android:textAllCaps="false"
         android:textColor="@android:color/white"
-        android:textSize="18sp"/>
+        android:textSize="18sp" />
+
     <Button
         android:id="@+id/btnPacking"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
         android:layout_margin="12dp"
+        android:layout_weight="1"
         android:backgroundTint="#EB9937"
-        android:padding="18dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp"
         android:text="Packing"
         android:textAllCaps="false"
         android:textColor="@android:color/white"
-        android:textSize="18sp"/>
+        android:textSize="18sp" />
 </LinearLayout>

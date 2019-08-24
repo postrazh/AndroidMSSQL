@@ -23,9 +23,9 @@ import android.provider.Settings;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.android.gms.samples.vision.barcodereader.BarcodeCapture;
-import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
         new ConnectionAsyncTask().execute();
     }
 
-    private void onFail(String strMessage) {
+    public void onFail(String strMessage) {
         ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 500);
         toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 700);
 
@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         snackbar.show();
     }
 
-    private void onSuccess(String strMessage) {
+    public void onSuccess(String strMessage) {
         try {
             Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
@@ -149,6 +149,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startScanOrder(String strActivityId) {
+        if (mConnection == null) {
+            onFail("Connection failed. Check your login information.");
+            return;
+        }
+
         if (!hasFrontCamera()) {
             Toast.makeText(MainActivity.this, "There is no camera. Simulating dummy bar code", Toast.LENGTH_SHORT).show();
             saveOrder("123456", strActivityId);
@@ -157,8 +162,7 @@ public class MainActivity extends AppCompatActivity {
             mStrActivityId = strActivityId;
 
             // stat scan the barcode
-            Intent intent = new Intent(this, BarcodeActivity.class);
-            startActivityForResult(intent, BARCODE_READER_ACTIVITY_REQUEST);
+            new IntentIntegrator(this).initiateScan();
         }
     }
 
@@ -167,13 +171,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == BARCODE_READER_ACTIVITY_REQUEST) {
-                if (data != null) {
-                    String barcode = data.getStringExtra("result");
-                    Toast.makeText(this, barcode, Toast.LENGTH_LONG).show();
-                    saveOrder(barcode, mStrActivityId);
-                }
+        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if(result != null) {
+            if(result.getContents() != null) {
+                String barcode = result.getContents();
+                Toast.makeText(this, "Scanned: " + barcode, Toast.LENGTH_LONG).show();
+                saveOrder(barcode, mStrActivityId);
             }
         } else {
             Toast.makeText(this, "Error in  scanning", Toast.LENGTH_SHORT).show();
@@ -224,7 +227,6 @@ public class MainActivity extends AppCompatActivity {
     private class ConnectionAsyncTask extends AsyncTask<Void, Void, Void> {
         private ProgressDialog mProgressDialog;
         private boolean mIsConnected = false;
-        private String mConnectionResult = "";
 
         public ConnectionAsyncTask() {
             mProgressDialog = new ProgressDialog(MainActivity.this);
@@ -244,14 +246,11 @@ public class MainActivity extends AppCompatActivity {
                 ConnectionHelper connectionHelper = new ConnectionHelper();
                 mConnection = connectionHelper.connection();
                 if (mConnection == null) {
-                    mConnectionResult = "Connection failed. Check your login information.";
                     mIsConnected = false;
                 } else {
-                    mConnectionResult = "Successfully connected!";
                     mIsConnected = true;
                 }
             } catch (Exception e) {
-                mConnectionResult = e.getMessage();
                 mIsConnected = false;
             }
 
@@ -264,7 +263,11 @@ public class MainActivity extends AppCompatActivity {
             if (mProgressDialog.isShowing())
                 mProgressDialog.dismiss();
 
-            Toast.makeText(MainActivity.this, mConnectionResult, Toast.LENGTH_LONG).show();
+            if (mIsConnected) {
+                onSuccess("Successfully connected!");
+            } else {
+                onFail("Connection failed. Check your login information.");
+            }
         }
     }
 
