@@ -19,7 +19,7 @@ public class GetData {
 
         try {
             ConnectionHelper connectionHelper = new ConnectionHelper();
-            connection = connectionHelper.connection();
+            connection = connectionHelper.connect();
             if (connection == null) {
                 ConnectionResult = "Check Your Internet Access!";
             } else {

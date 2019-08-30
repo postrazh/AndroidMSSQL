@@ -1,13 +1,16 @@
 package com.info.androidmssql;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -20,6 +23,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -31,12 +37,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
+import java.util.prefs.Preferences;
 
 public class MainActivity extends AppCompatActivity {
-    private static final int BARCODE_READER_ACTIVITY_REQUEST = 1;
+    private static final int REQUEST_SETTINGS_ACTIVITY = 1;
+    private static final int REQUEST_CAMERA_PERMISSION = 2;
 
     // views
     private Button mBtnSpecs;
@@ -51,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
 
     // connection
     private Connection mConnection;
+
+    //
+    private final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+    private final long ONE_DAY = 24 * 60 * 60 * 1000;
 
     private boolean hasFrontCamera() {
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
@@ -71,27 +84,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // check permission
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            final String[] perms = {
-                    Manifest.permission.CAMERA
-            };
-            for(String perm: perms)
-                if (checkSelfPermission(perm) != PackageManager.PERMISSION_GRANTED) {
-                    if (permd == null || !permd.isShowing())
-                        permd = new AlertDialog.Builder(this)
-                                .setMessage("The camera permission is needed to capture the barcode.")
-                                .setTitle("Permissions")
-                                .setCancelable(true)
-                                .setPositiveButton("OK",new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int whichButton) {
-                                        requestPermissions(perms,0);
-                                    }
-                                })
-                                .show();
-                    return;
-                }
-        }
+        checkTime();
 
         // get phone id
         mPhoneID = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
@@ -123,8 +116,73 @@ public class MainActivity extends AppCompatActivity {
             startScanOrder("5");
         });
 
-        // connect
-        new ConnectionAsyncTask().execute();
+        // check permission
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            final String[] perms = {
+                    Manifest.permission.CAMERA
+            };
+            for(String perm: perms)
+                if (checkSelfPermission(perm) != PackageManager.PERMISSION_GRANTED) {
+                    if (permd == null || !permd.isShowing())
+                        permd = new AlertDialog.Builder(this)
+                                .setMessage("The camera permission is needed to capture the barcode.")
+                                .setTitle("Permissions")
+                                .setCancelable(true)
+                                .setPositiveButton("OK",new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        requestPermissions(perms,REQUEST_CAMERA_PERMISSION);
+                                    }
+                                })
+                                .show();
+                    return;
+                } else {
+                    // connect
+                    new ConnectionAsyncTask().execute();
+                }
+        }
+    }
+
+    private void checkTime() {
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        String installDate = preferences.getString("InstallDate", null);
+        if(installDate == null) {
+            // First run, so save the current date
+            SharedPreferences.Editor editor = preferences.edit();
+            Date now = new Date();
+            String dateString = formatter.format(now);
+            editor.putString("InstallDate", dateString);
+            // Commit the edits!
+            editor.commit();
+        }
+        else {
+            // This is not the 1st run, check install date
+            Date before = null;
+            try {
+                before = (Date)formatter.parse(installDate);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            Date now = new Date();
+            long diff = now.getTime() - before.getTime();
+            long days = diff / ONE_DAY;
+            if(days > 2) {
+                System.exit(0);
+            }
+        }
+    }
+
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CAMERA_PERMISSION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // connect
+                    new ConnectionAsyncTask().execute();
+                }
+            }
+        }
     }
 
     public void onFail(String strMessage) {
@@ -149,10 +207,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startScanOrder(String strActivityId) {
-        if (mConnection == null) {
-            onFail("Connection failed. Check your login information.");
-            return;
-        }
+//        if (mConnection == null) {
+//            onFail("Connection failed. Check your login information.");
+//            return;
+//        }
 
         if (!hasFrontCamera()) {
             Toast.makeText(MainActivity.this, "There is no camera. Simulating dummy bar code", Toast.LENGTH_SHORT).show();
@@ -171,15 +229,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if(result != null) {
-            if(result.getContents() != null) {
-                String barcode = result.getContents();
-                Toast.makeText(this, "Scanned: " + barcode, Toast.LENGTH_LONG).show();
-                saveOrder(barcode, mStrActivityId);
+        if (requestCode == REQUEST_SETTINGS_ACTIVITY) {
+            // connect
+            new ConnectionAsyncTask().execute();
+        } else if (requestCode == IntentIntegrator.REQUEST_CODE){
+            IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode,
+                    data);
+            if (result != null) {
+                if (result.getContents() != null) {
+                    String barcode = result.getContents();
+                    Toast.makeText(this, "Scanned: " + barcode, Toast.LENGTH_LONG).show();
+                    saveOrder(barcode, mStrActivityId);
+                }
+            } else {
+                Toast.makeText(this, "Error in  scanning", Toast.LENGTH_SHORT).show();
             }
-        } else {
-            Toast.makeText(this, "Error in  scanning", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -228,6 +292,9 @@ public class MainActivity extends AppCompatActivity {
         private ProgressDialog mProgressDialog;
         private boolean mIsConnected = false;
 
+        String IP;
+        String port;
+
         public ConnectionAsyncTask() {
             mProgressDialog = new ProgressDialog(MainActivity.this);
         }
@@ -238,13 +305,21 @@ public class MainActivity extends AppCompatActivity {
 
             mProgressDialog.setMessage("Connecting to the server.\nPlease wait...");
             mProgressDialog.show();
+
+            mConnection = null;
+
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+
+            IP = sharedPreferences.getString(getString(R.string.pref_IP), "");
+            port = sharedPreferences.getString(getString(R.string.pref_port), "");
+            ConnectionHelper.setConnectionInfo(IP, port);
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
             try {
                 ConnectionHelper connectionHelper = new ConnectionHelper();
-                mConnection = connectionHelper.connection();
+                mConnection = connectionHelper.connect();
                 if (mConnection == null) {
                     mIsConnected = false;
                 } else {
@@ -369,5 +444,24 @@ public class MainActivity extends AppCompatActivity {
 
             return false;
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_settings) {
+            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+            startActivityForResult(intent, REQUEST_SETTINGS_ACTIVITY);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }

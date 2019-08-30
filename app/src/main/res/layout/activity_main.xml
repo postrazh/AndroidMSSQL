@@ -6,7 +6,9 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_activity"
     android:orientation="horizontal"
-    android:padding="12dp"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingBottom="48dp"
     tools:context=".MainActivity">
 
     <Button
