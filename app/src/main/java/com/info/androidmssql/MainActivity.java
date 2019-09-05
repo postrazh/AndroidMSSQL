@@ -4,16 +4,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Application;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.Ringtone;
@@ -22,6 +18,7 @@ import android.media.ToneGenerator;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,12 +33,12 @@ import com.google.zxing.integration.android.IntentResult;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
-import java.util.prefs.Preferences;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_SETTINGS_ACTIVITY = 1;
@@ -79,12 +76,56 @@ public class MainActivity extends AppCompatActivity {
 
     AlertDialog permd;
 
+    private Handler mHandler = new Handler();
+
+    private int count = 0;
+
+    private Runnable mRunnable = new Runnable() {
+        @Override
+        public void run() {
+
+            count ++;
+            if (count > 600) {
+                count = 0;
+                try {
+                    mConnection.close();
+                    mConnection = null;
+                    connect();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            mHandler.postDelayed(this, 1000);
+        }
+    };
+
+    private boolean isConnecting = false;
+
+    private void connect() {
+        if (!isConnecting) {
+            try {
+                if (mConnection == null) {
+                    new ConnectionAsyncTask().execute();
+                } else if (mConnection.isClosed()) {
+                    new ConnectionAsyncTask().execute();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        checkTime();
+        // keep screen on
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        //
+//        checkTime();
 
         // get phone id
         mPhoneID = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
@@ -137,9 +178,12 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 } else {
                     // connect
-                    new ConnectionAsyncTask().execute();
+                    connect();
                 }
         }
+
+        // check
+        mHandler.postDelayed(mRunnable, 10000);
     }
 
     private void checkTime() {
@@ -165,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
             Date now = new Date();
             long diff = now.getTime() - before.getTime();
             long days = diff / ONE_DAY;
-            if(days > 2) {
+            if(days > 10) {
                 System.exit(0);
             }
         }
@@ -179,21 +223,38 @@ public class MainActivity extends AppCompatActivity {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                     // connect
-                    new ConnectionAsyncTask().execute();
+                    connect();
                 }
             }
         }
     }
 
+    AlertDialog dlg;
+
     public void onFail(String strMessage) {
         ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 500);
         toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 700);
 
-        Snackbar snackbar = Snackbar.make(getWindow().getDecorView(), strMessage, Snackbar.LENGTH_LONG);
-        snackbar.show();
+//        Snackbar snackbar = Snackbar.make(getWindow().getDecorView(), strMessage, Snackbar.LENGTH_LONG);
+//        snackbar.show();
+
+        if (dlg != null)
+            dlg.dismiss();
+
+        dlg = new AlertDialog.Builder(this)
+                .setTitle("Error")
+                .setMessage(strMessage)
+                .setCancelable(true)
+                .setPositiveButton("OK",null)
+                .create();
+
+                dlg.show();
     }
 
     public void onSuccess(String strMessage) {
+        if (dlg != null)
+            dlg.dismiss();
+
         try {
             Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
@@ -206,11 +267,16 @@ public class MainActivity extends AppCompatActivity {
         snackbar.show();
     }
 
+    private final static int MAX_RETRY = 3;
+    private int mRetryNumber = MAX_RETRY;
+
     private void startScanOrder(String strActivityId) {
-//        if (mConnection == null) {
-//            onFail("Connection failed. Check your login information.");
-//            return;
-//        }
+        if (mConnection == null) {
+            onFail("Connection failed. Check your login information.");
+            return;
+        }
+
+        mRetryNumber = MAX_RETRY;
 
         if (!hasFrontCamera()) {
             Toast.makeText(MainActivity.this, "There is no camera. Simulating dummy bar code", Toast.LENGTH_SHORT).show();
@@ -219,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
             // save activity id
             mStrActivityId = strActivityId;
 
-            // stat scan the barcode
+            // start scan the barcode
             new IntentIntegrator(this).initiateScan();
         }
     }
@@ -230,15 +296,23 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == REQUEST_SETTINGS_ACTIVITY) {
+            // close connection
+            try {
+                if (mConnection != null)
+                    mConnection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
             // connect
-            new ConnectionAsyncTask().execute();
+            connect();
         } else if (requestCode == IntentIntegrator.REQUEST_CODE){
             IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode,
                     data);
             if (result != null) {
                 if (result.getContents() != null) {
                     String barcode = result.getContents();
-                    Toast.makeText(this, "Scanned: " + barcode, Toast.LENGTH_LONG).show();
+//                    Toast.makeText(this, "Scanned: " + barcode, Toast.LENGTH_LONG).show();
                     saveOrder(barcode, mStrActivityId);
                 }
             } else {
@@ -248,16 +322,52 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveOrder(String strOrderNumber, String strActivityId) {
-        Boolean searchResult = false;
+
+        // check order number
+        boolean isValidOrder = false;
+
         try {
-            searchResult = new SearchAsyncTask().execute(strOrderNumber, strActivityId).get();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+            if (mConnection.isClosed()) {
+                int a = 1;
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        if (searchResult) {
+        // 114-0448369-2777052 : 19
+        // 10316708 : 8
+        if (strOrderNumber.length() > 18) {
+            try {
+                isValidOrder = new CheckOrderAsyncTask().execute(strOrderNumber).get();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // test
+        isValidOrder = true;
+
+        if (!isValidOrder) {
+            mRetryNumber--;
+
+            if (mRetryNumber > 0) {
+                // scan barcode again
+                new IntentIntegrator(this).initiateScan();
+            } else {
+                onFail("Scanned the invalid barcode. Please contact to your manager");
+            }
+            return;
+        }
+
+        // check order-activity
+        boolean isNewOrderActivity = false;
+        try {
+            isNewOrderActivity = new CheckOrderActivitiesAsyncTask().execute(strOrderNumber, strActivityId).get();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (isNewOrderActivity) {
             String strErrorMsg = "";
             switch (strActivityId) {
                 case "1":
@@ -303,6 +413,8 @@ public class MainActivity extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
+            isConnecting = true;
+
             mProgressDialog.setMessage("Connecting to the server.\nPlease wait...");
             mProgressDialog.show();
 
@@ -343,6 +455,8 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 onFail("Connection failed. Check your login information.");
             }
+
+            isConnecting = false;
         }
     }
 
@@ -403,6 +517,9 @@ public class MainActivity extends AppCompatActivity {
             catch (Exception e) {
                 mIsSuccess = false;
                 mResultMessage = e.getMessage();
+
+                mConnection = null;
+                connect();
             }
 
             return null;
@@ -420,7 +537,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class SearchAsyncTask extends AsyncTask<String, Void, Boolean> {
+    private class CheckOrderActivitiesAsyncTask extends AsyncTask<String, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(String... params) {
@@ -433,18 +550,44 @@ public class MainActivity extends AppCompatActivity {
                             strOrderNumber + "' AND Activity_ID='" +
                             strActivityID + "'";
                     Statement statement = mConnection.createStatement();
+                    statement.setQueryTimeout(5);
                     ResultSet resultSet = statement.executeQuery(query);
                     if (resultSet.next())
                         return true;
                 }
             }
             catch (Exception e) {
-
+                e.printStackTrace();
             }
 
             return false;
         }
     }
+
+    private class CheckOrderAsyncTask extends AsyncTask<String, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            try {
+                if(mConnection != null) {
+                    String strOrderNumber = params[0];
+
+                    String query = "SELECT * FROM [Order] WHERE [Order - Number]='" +
+                            strOrderNumber + "'";
+                    Statement statement = mConnection.createStatement();
+                    ResultSet resultSet = statement.executeQuery(query);
+                    if (resultSet.next())
+                        return true;
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return false;
+        }
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
