@@ -271,9 +271,11 @@ public class MainActivity extends AppCompatActivity {
     private int mRetryNumber = MAX_RETRY;
 
     private void startScanOrder(String strActivityId) {
-        if (mConnection == null) {
-            onFail("Connection failed. Check your login information.");
-            return;
+        if( BuildConfig.BUILD_TYPE.equalsIgnoreCase("release")) {
+            if (mConnection == null) {
+                onFail("Connection failed. Check your login information.");
+                return;
+            }
         }
 
         mRetryNumber = MAX_RETRY;
@@ -327,25 +329,10 @@ public class MainActivity extends AppCompatActivity {
         boolean isValidOrder = false;
 
         try {
-            if (mConnection.isClosed()) {
-                int a = 1;
-            }
-        } catch (SQLException e) {
+            isValidOrder = new CheckOrderAsyncTask().execute(strOrderNumber).get();
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // 114-0448369-2777052 : 19
-        // 10316708 : 8
-        if (strOrderNumber.length() > 18) {
-            try {
-                isValidOrder = new CheckOrderAsyncTask().execute(strOrderNumber).get();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        // test
-        isValidOrder = true;
 
         if (!isValidOrder) {
             mRetryNumber--;
@@ -568,10 +555,18 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(String... params) {
+            String strOrderNumber = params[0];
+
+            // 114-0448369-2777052 : 19
+            // 10316708 : 8
+            if (!(strOrderNumber.matches("\\d{3}-\\d{7}-\\d{7}") ||
+                strOrderNumber.matches("\\d{13}"))
+            ) {
+                return false;
+            }
+
             try {
                 if(mConnection != null) {
-                    String strOrderNumber = params[0];
-
                     String query = "SELECT * FROM [Order] WHERE [Order - Number]='" +
                             strOrderNumber + "'";
                     Statement statement = mConnection.createStatement();
